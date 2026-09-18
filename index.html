@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Student Loan Calculator | Calculate Your Student Loan</title>
+<meta name="description" content="Calculate an estimated student loan amount, interest and total cost using simple loan, FDR and savings details. Free online student loan calculator.">
+<meta name="theme-color" content="#2f6fed">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Student Loan Calculation">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#ffffff; --surface-2:#f0f2f5; --border:#e2e5ea;
+    --text:#1a1d23; --text-dim:#5b6270; --accent:#2f6fed; --accent-dim:#e8f0fe;
+    --good:#1a8a4a; --good-bg:#e6f6ec; --warn:#b9750c; --warn-bg:#fdf1de;
+    --bad:#c23636; --bad-bg:#fbe9e9; --shadow:0 1px 3px rgba(20,20,30,.08), 0 1px 2px rgba(20,20,30,.06);
+    --radius:12px; --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Noto Sans", "Apple Color Emoji";
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14161a; --surface:#1c1f25; --surface-2:#23272f; --border:#2e333c;
+      --text:#eef0f3; --text-dim:#98a0ad; --accent:#5b8def; --accent-dim:#1e2a44;
+      --good:#3fca7d; --good-bg:#123522; --warn:#e0a944; --warn-bg:#3a2c10;
+      --bad:#f0716a; --bad-bg:#3a1a1a; --shadow:0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14161a; --surface:#1c1f25; --surface-2:#23272f; --border:#2e333c;
+    --text:#eef0f3; --text-dim:#98a0ad; --accent:#5b8def; --accent-dim:#1e2a44;
+    --good:#3fca7d; --good-bg:#123522; --warn:#e0a944; --warn-bg:#3a2c10;
+    --bad:#f0716a; --bad-bg:#3a1a1a; --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:var(--font);
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1100px; margin:0 auto; padding:20px 16px 60px;}
+  header.top{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
+  header.top h1{font-size:1.35rem; margin:0; display:flex; align-items:center; gap:10px;}
+  header.top .sub{color:var(--text-dim); font-size:.85rem; margin-top:2px;}
+  .status-pill{font-size:.72rem; padding:3px 9px; border-radius:99px; background:var(--surface-2); color:var(--text-dim); display:inline-flex; align-items:center; gap:5px;}
+  .status-pill.live::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--good); display:inline-block;}
+  .status-pill.local::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--warn); display:inline-block;}
+
+  nav.tabs{display:flex; gap:6px; border-bottom:1px solid var(--border); margin-bottom:20px; overflow-x:auto;}
+  nav.tabs button{
+    background:none; border:none; padding:10px 14px; font-size:.92rem; color:var(--text-dim);
+    cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; font-family:inherit;
+  }
+  nav.tabs button.active{color:var(--accent); border-bottom-color:var(--accent); font-weight:600;}
+
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow);}
+  .grid{display:grid; gap:14px;}
+  .grid.cols-2{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+  .grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
+
+  label{display:block; font-size:.78rem; color:var(--text-dim); margin-bottom:5px; font-weight:600;}
+  input[type=text], input[type=number], input[type=date], select, textarea{
+    width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface-2); color:var(--text); font-size:.92rem; font-family:inherit;
+  }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--accent); outline-offset:1px;}
+  fieldset{border:1px solid var(--border); border-radius:10px; padding:14px; margin:0 0 14px;}
+  legend{padding:0 6px; color:var(--text-dim); font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.02em;}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:6px; padding:9px 15px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface-2); color:var(--text); font-size:.88rem; cursor:pointer; font-family:inherit; font-weight:600;
+  }
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn.danger{background:var(--bad-bg); border-color:var(--bad-bg); color:var(--bad);}
+  .quick-delete{padding:6px 10px; font-size:.9rem; line-height:1;}
+
+  .mini-toast{
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%);
+    background:var(--text); color:var(--bg); padding:10px 18px; border-radius:8px;
+    font-size:.88rem; box-shadow:var(--shadow); z-index:100; opacity:0; transition:opacity .2s ease;
+  }
+  .mini-toast.show{ opacity:1; }
+  .btn.ghost{background:transparent;}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .btn-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;}
+
+  table{width:100%; border-collapse:collapse; font-size:.88rem;}
+  th{text-align:left; color:var(--text-dim); font-weight:600; font-size:.75rem; text-transform:uppercase; letter-spacing:.02em; padding:8px 10px; border-bottom:1px solid var(--border);}
+  td{padding:10px; border-bottom:1px solid var(--border); vertical-align:middle;}
+  tr.row:hover{background:var(--surface-2); cursor:pointer;}
+  .table-scroll{overflow-x:auto;}
+
+  .badge{font-size:.72rem; padding:3px 9px; border-radius:99px; font-weight:600;}
+  .badge.active{background:var(--accent-dim); color:var(--accent);}
+  .badge.closed{background:var(--surface-2); color:var(--text-dim);}
+  .badge.overdue{background:var(--bad-bg); color:var(--bad);}
+
+  .progress{height:7px; background:var(--surface-2); border-radius:99px; overflow:hidden; width:90px;}
+  .progress > div{height:100%; background:var(--good);}
+
+  .empty{text-align:center; padding:50px 20px; color:var(--text-dim);}
+  .empty .big{font-size:2rem; margin-bottom:8px;}
+
+  .breakdown-row{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--border); font-size:.9rem;}
+  .breakdown-row.total{font-weight:700; border-bottom:none; border-top:2px solid var(--border); padding-top:10px; margin-top:4px; font-size:1rem;}
+  .breakdown-row .label{color:var(--text-dim);}
+  .breakdown-row .val{font-variant-numeric:tabular-nums; text-align:right;}
+  .scenario-title{font-weight:700; margin:18px 0 6px; font-size:.95rem;}
+  .note{font-size:.78rem; color:var(--text-dim); margin-top:6px; line-height:1.4;}
+
+  .doc-item{display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid var(--border);}
+  .doc-item:last-child{border-bottom:none;}
+  .doc-item input[type=checkbox]{width:18px; height:18px; margin-top:2px; accent-color:var(--good);}
+  .doc-item .doc-name{flex:1; font-size:.9rem;}
+  .doc-item .doc-name.done{text-decoration:line-through; color:var(--text-dim);}
+  .doc-item input[type=text].doc-note{margin-top:5px; font-size:.8rem; padding:6px 8px;}
+  .doc-item .remove-doc{color:var(--bad); background:none; border:none; cursor:pointer; font-size:1.1rem; line-height:1; padding:2px 6px;}
+
+  .overlay{position:fixed; inset:0; background:rgba(15,17,20,.5); display:flex; align-items:flex-start; justify-content:center; padding:30px 14px; overflow-y:auto; z-index:50;}
+  .modal{background:var(--surface); border-radius:var(--radius); max-width:720px; width:100%; padding:22px; box-shadow:0 20px 50px rgba(0,0,0,.3);}
+  .modal-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; gap:10px;}
+  .modal-head h2{margin:0; font-size:1.15rem;}
+  .close-x{background:none; border:none; font-size:1.3rem; cursor:pointer; color:var(--text-dim); line-height:1;}
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  @media (max-width:680px){.two-col{grid-template-columns:1fr;}}
+
+  .section-title{font-weight:700; font-size:.85rem; text-transform:uppercase; letter-spacing:.02em; color:var(--text-dim); margin:20px 0 8px;}
+  .section-title:first-child{margin-top:0;}
+  select.type-select{font-weight:600;}
+
+  #printArea{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{position:absolute; top:0; left:0; width:100%; display:block; padding:10px 20px; color:#000; background:#fff;}
+  }
+  .print-summary h2{margin:0 0 2px; font-size:1.3rem;}
+  .print-summary .meta{color:#333; font-size:.85rem; margin-bottom:14px;}
+  .print-summary h3{font-size:.95rem; margin:16px 0 6px; border-bottom:1px solid #999; padding-bottom:3px;}
+  .print-summary table{width:100%; border-collapse:collapse; margin-bottom:6px;}
+  .print-summary td{padding:4px 2px; font-size:.85rem;}
+  .print-summary td.pv{text-align:right; font-variant-numeric:tabular-nums;}
+  .print-summary .doclist{list-style:none; padding:0; margin:0;}
+  .print-summary .doclist li{padding:5px 0; border-bottom:1px solid #ccc; font-size:.88rem;}
+  .print-summary .doclist .box{display:inline-block; width:14px; height:14px; border:1.5px solid #333; margin-right:8px; text-align:center; line-height:13px; font-size:11px; vertical-align:middle;}
+</style>
+
+<style id="public-calculator-overrides">
+  /* Public calculator presentation */
+  body { background: #f5f7fb !important; }
+  header, nav { position: relative; }
+  /* Hide management/navigation areas if the original app uses common labels. */
+  [data-section="students"], [data-section="sponsors"], [data-section="cases"],
+  [data-section="documents"], [data-section="settings"],
+  #students, #sponsors, #cases, #documents, #settings,
+  .students-section, .sponsors-section, .cases-section,
+  .documents-section, .settings-section { display:none !important; }
+  .public-seo {
+    max-width: 960px; margin: 28px auto; padding: 0 18px 50px;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color:#1f2937; line-height:1.65;
+  }
+  .public-seo h1 { font-size: clamp(28px, 5vw, 42px); margin: 0 0 8px; }
+  .public-seo .lead { font-size: 17px; color:#4b5563; margin-bottom:22px; }
+  .public-seo .notice {
+    background:#fff; border:1px solid #e5e7eb; border-radius:14px;
+    padding:16px 18px; margin:20px 0;
+  }
+  .public-seo details {
+    background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+    padding:13px 16px; margin:10px 0;
+  }
+  .public-seo summary { cursor:pointer; font-weight:650; }
+  .public-footer {
+    max-width:960px; margin:0 auto; padding:20px 18px 35px;
+    text-align:center; color:#6b7280; font:14px system-ui,sans-serif;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>🎓 Student Loan Calculation <span class="status-pill" id="connStatus">…</span></h1>
+      <div class="sub">Loan-against-FDR / loan-against-savings calculator, with a running list of cases and their document attachments.</div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button data-tab="dashboard" class="active">Dashboard</button>
+    <button data-tab="new">+ New Case</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+
+  <section id="tab-dashboard"></section>
+  <section id="tab-new" style="display:none"></section>
+  <section id="tab-settings" style="display:none"></section>
+</div>
+
+<div id="modalRoot"></div>
+<div id="printArea"></div>
+<div id="miniDialogRoot"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------------------------------------------------------
+   CONSTANTS / DEFAULTS
+--------------------------------------------------------------- */
+const DEFAULT_SETTINGS = {
+  currencySymbol: "৳",  // shown before every amount — change to $, €, £, ₹, etc.
+  fdrRate: 8.5,        // annual FDR interest rate %
+  taxRate: 10,         // govt tax on interest %
+  margin: 10,          // bank margin % kept back from FDR/savings when sizing the loan
+  fdrLoanRate: 11.5,   // annual interest charged on a loan against FDR
+  savingsLoanRate: 14.75, // annual interest charged on a loan against a savings account
+  stampFee: 710,
+  otherCost: 2000,
+  // Government excise/duty on the account balance, in slabs (this mirrors
+  // Bangladesh's structure — every country's rule is different, so it's
+  // fully editable here). "upTo" is the top of that bracket; anything above
+  // the last row uses aboveFee. Set every fee to 0 if your country/bank
+  // doesn't charge this at all.
+  exciseSlabs: [
+    { upTo: 300000, fee: 0 },
+    { upTo: 500000, fee: 150 },
+    { upTo: 1000000, fee: 500 },
+    { upTo: 5000000, fee: 3000 },
+    { upTo: 10000000, fee: 5000 },
+    { upTo: 20000000, fee: 10000 },
+    { upTo: 50000000, fee: 20000 }
+  ],
+  exciseAboveFee: 50000,
+  documents: [
+    "Sponsor's photo (2 copies)",
+    "Sponsor's NID",
+    "Sponsor's income tax return copy (last year)",
+    "Nominee's photo",
+    "Nominee's NID",
+    "Student's passport copy",
+    "Student's visa copy (if available)"
+  ]
+};
+
+let settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+let cases = [];
+let db = null;
+let dbReady = false;
+let activeTab = "dashboard";
+let editingCaseId = null; // case currently open in modal
+
+/* ---------------------------------------------------------------
+   PERSISTENCE (db capability, falling back to localStorage)
+--------------------------------------------------------------- */
+function lsLoad(){
+  try{
+    const c = localStorage.getItem("slm_cases");
+    const s = localStorage.getItem("slm_settings");
+    if (c) cases = JSON.parse(c);
+    if (s) settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(s));
+  }catch(e){ /* ignore, start fresh */ }
+}
+function lsSaveCases(){
+  try{ localStorage.setItem("slm_cases", JSON.stringify(cases)); }catch(e){}
+}
+function lsSaveSettings(){
+  try{ localStorage.setItem("slm_settings", JSON.stringify(settings)); }catch(e){}
+}
+
+function setConnStatus(mode){
+  const el = document.getElementById("connStatus");
+  if (mode === "live"){ el.textContent = "synced"; el.className = "status-pill live"; }
+  else { el.textContent = "saved on this device"; el.className = "status-pill local"; }
+}
+
+let unsubCases = null;
+let unsubSettings = null;
+
+function downgradeToLocal(){
+  // Called when a write is rejected (e.g. this viewer only has read/view
+  // access, or no account at all) — switch this device to saving locally
+  // instead of leaving the action silently failed.
+  if (!dbReady) return;
+  dbReady = false;
+  db = null;
+  if (typeof unsubCases === "function"){ try{ unsubCases(); }catch(e){} }
+  if (typeof unsubSettings === "function"){ try{ unsubSettings(); }catch(e){} }
+  // Seed this device's local storage from what was last visible, so the
+  // view doesn't go blank the moment we switch away from synced storage —
+  // the in-memory `cases`/`settings` still hold the last-seen state here.
+  lsSaveCases();
+  lsSaveSettings();
+  setConnStatus("local");
+}
+
+async function initPersistence(){
+  lsLoad(); // always have a local fallback ready immediately
+  try{
+    if (window.claude && typeof window.claude.use === "function"){
+      db = await window.claude.use("db");
+    }
+  }catch(e){ db = null; }
+
+  if (db){
+    dbReady = true;
+    setConnStatus("live");
+    // settings doc
+    unsubSettings = db.doc("settings/rates").onSnapshot(function(snap){
+      if (snap.exists){
+        settings = Object.assign({}, DEFAULT_SETTINGS, snap.data());
+      } else {
+        settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+      }
+      renderActiveTab();
+    }, function(err){ console.warn("settings sub error", err); });
+
+    // cases collection
+    unsubCases = db.collection("cases").orderBy("createdAt", "desc").onSnapshot(function(qs){
+      cases = qs.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); });
+      renderActiveTab();
+    }, function(err){ console.warn("cases sub error", err); });
+  } else {
+    setConnStatus("local");
+    renderActiveTab();
+  }
+}
+
+async function saveSettings(newSettings){
+  settings = newSettings;
+  if (dbReady){
+    try{ await db.doc("settings/rates").set(settings); return; }
+    catch(e){ console.warn("settings write failed, saving on this device instead", e); downgradeToLocal(); }
+  }
+  lsSaveSettings();
+  renderActiveTab();
+}
+
+async function addCase(caseObj){
+  caseObj.createdAt = Date.now();
+  if (dbReady){
+    try{ await db.collection("cases").add(caseObj); return; }
+    catch(e){ console.warn("case save failed, saving on this device instead", e); downgradeToLocal(); }
+  }
+  caseObj.id = "c" + caseObj.createdAt + Math.random().toString(36).slice(2,7);
+  cases.unshift(caseObj);
+  lsSaveCases();
+  renderActiveTab();
+}
+
+async function updateCase(id, patch){
+  if (dbReady){
+    try{ await db.collection("cases").doc(id).update(patch); return; }
+    catch(e){ console.warn("case update failed, saving on this device instead", e); downgradeToLocal(); }
+  }
+  const idx = cases.findIndex(function(c){ return c.id === id; });
+  if (idx > -1){ cases[idx] = Object.assign({}, cases[idx], patch); lsSaveCases(); }
+  renderActiveTab();
+  if (editingCaseId === id) renderModal(id);
+}
+
+async function deleteCase(id){
+  if (dbReady){
+    try{ await db.collection("cases").doc(id).delete(); return; }
+    catch(e){ console.warn("case delete failed, removing on this device instead", e); downgradeToLocal(); }
+  }
+  cases = cases.filter(function(c){ return c.id !== id; });
+  lsSaveCases();
+  renderActiveTab();
+}
+
+/* ---------------------------------------------------------------
+   CALCULATIONS  (mirrors the bank's loan-against-FDR / loan-against-
+   savings worksheet: margin held back, quarterly/monthly interest,
+   excise-duty slabs, and the extra excise charge when the account
+   spans a calendar-year boundary)
+--------------------------------------------------------------- */
+function exciseSlab(amount){
+  const slabs = (settings.exciseSlabs && settings.exciseSlabs.length) ? settings.exciseSlabs : DEFAULT_SETTINGS.exciseSlabs;
+  const sorted = slabs.slice().sort(function(a,b){ return a.upTo - b.upTo; });
+  for (let i = 0; i < sorted.length; i++){
+    if (amount <= sorted[i].upTo) return sorted[i].fee;
+  }
+  return (settings.exciseAboveFee != null) ? settings.exciseAboveFee : DEFAULT_SETTINGS.exciseAboveFee;
+}
+function addDays(date, days){
+  const d = new Date(date.getTime());
+  d.setDate(d.getDate() + days);
+  return d;
+}
+function addMonths(date, months){
+  const d = new Date(date.getTime());
+  d.setMonth(d.getMonth() + months);
+  return d;
+}
+function crossesCalendarYear(openDate, closeDate){
+  return closeDate.getFullYear() > openDate.getFullYear();
+}
+function fmtMoney(n){
+  if (n === undefined || n === null || isNaN(n)) return "—";
+  return (settings.currencySymbol || DEFAULT_SETTINGS.currencySymbol) + Math.round(n).toLocaleString("en-US");
+}
+function fmtDate(d){
+  if (!d) return "—";
+  const dt = (d instanceof Date) ? d : new Date(d);
+  if (isNaN(dt.getTime())) return "—";
+  return dt.toLocaleDateString(undefined, { year:"numeric", month:"short", day:"numeric" });
+}
+
+// FDR-backed loan: continuous, quarterly-compounding rollover.
+// Every 3 months, unpaid interest on both sides is capitalized into the balance,
+// and the next quarter's interest is charged on that increased balance —
+// so a 6-month (2-quarter) case accrues MORE than simply 2x a 3-month case.
+function calcFDR(c){
+  const r = c.rates;
+  const initialPrincipal = c.principal;        // FDR value at opening
+  const openDate = new Date(c.openDate);
+  const quarters = Math.max(1, Math.round((c.tenureMonths || 3) / 3));
+  const tenureDays = quarters * 90;
+  const closeDate = addDays(openDate, tenureDays);
+
+  const loanAmount = initialPrincipal - initialPrincipal * (r.margin/100); // initial loan sizing off the FDR
+  const marginHeld = initialPrincipal - loanAmount;
+
+  let fdrBalance = initialPrincipal;
+  let loanBalance = loanAmount;
+  let totalInterestGap = 0;
+  const quarterSchedule = [];
+
+  for (let q = 1; q <= quarters; q++){
+    const fdrInterestQuarterly = fdrBalance * (r.fdrRate/100) / 4;
+    const fdrInterestAfterTax = fdrInterestQuarterly - fdrInterestQuarterly * (r.taxRate/100);
+    const loanInterestQuarterly = loanBalance * (r.fdrLoanRate/100) / 4;
+    const gap = loanInterestQuarterly - fdrInterestAfterTax;
+    totalInterestGap += gap;
+    quarterSchedule.push({
+      quarter: q,
+      fdrBalanceStart: fdrBalance,
+      loanBalanceStart: loanBalance,
+      fdrInterestAfterTax: fdrInterestAfterTax,
+      loanInterestQuarterly: loanInterestQuarterly,
+      gap: gap
+    });
+    // Continuous rollover: this quarter's unpaid interest compounds into next quarter's balance.
+    fdrBalance = fdrBalance + fdrInterestAfterTax;
+    loanBalance = loanBalance + loanInterestQuarterly;
+  }
+
+  const exciseLoanAcct = exciseSlab(initialPrincipal);  // bank's "excise duty for loan account" slab
+  const exciseFDRAcct  = exciseSlab(loanAmount);        // bank's "excise duty for FDR" slab
+  const crosses = crossesCalendarYear(openDate, closeDate);
+  const exciseLoanAcctAdj = crosses ? exciseLoanAcct * 2 : exciseLoanAcct;
+  const exciseFDRAcctAdj  = crosses ? exciseFDRAcct * 2 : exciseFDRAcct;
+
+  const baseTotal = totalInterestGap + exciseLoanAcct + exciseFDRAcct + r.stampFee + r.otherCost;
+  const adjTotal   = totalInterestGap + exciseLoanAcctAdj + exciseFDRAcctAdj + r.stampFee + r.otherCost;
+
+  return {
+    type: "FDR",
+    openDate, closeDate, tenureDays, quarters,
+    principal: initialPrincipal, loanAmount, marginHeld,
+    quarterSchedule,
+    finalFDRBalance: fdrBalance, finalLoanBalance: loanBalance,
+    totalInterestGap,
+    exciseLoanAcct, exciseFDRAcct, exciseLoanAcctAdj, exciseFDRAcctAdj,
+    crossesYear: crosses,
+    stampFee: r.stampFee, otherCost: r.otherCost,
+    baseTotal, adjTotal
+  };
+}
+
+// Savings-backed loan: tenureMonths is any whole number of months (unchanged,
+// simple non-compounding interest — matches the original worksheet's savings sheet).
+function calcSavings(c){
+  const r = c.rates;
+  const principal = c.principal;               // savings balance
+  const openDate = new Date(c.openDate);
+  const months = c.tenureMonths;
+  const closeDate = addMonths(openDate, months);
+
+  const savingsInterest = (c.savingsInterestRate || 0)/100 * principal * months/12;
+  const savingsInterestAfterTax = savingsInterest - savingsInterest * (r.taxRate/100);
+  const loanAmount = principal - principal * (r.margin/100);
+  const marginHeld = principal - loanAmount;
+  const loanInterest = loanAmount * (r.savingsLoanRate/100) * months/12;
+  const gap = loanInterest - savingsInterestAfterTax;
+
+  const exciseLoanAcct = exciseSlab(principal);
+  const exciseSavingsAcct = exciseSlab(loanAmount);
+  const crosses = crossesCalendarYear(openDate, closeDate);
+  const exciseLoanAcctAdj = crosses ? exciseLoanAcct * 2 : exciseLoanAcct;
+  const exciseSavingsAcctAdj = crosses ? exciseSavingsAcct * 2 : exciseSavingsAcct;
+
+  const baseTotal = gap + exciseLoanAcct + exciseSavingsAcct + r.stampFee + r.otherCost;
+  const adjTotal   = gap + exciseLoanAcctAdj + exciseSavingsAcctAdj + r.stampFee + r.otherCost;
+
+  return {
+    type: "SAVINGS",
+    openDate, closeDate, months,
+    principal, loanAmount, marginHeld,
+    savingsInterest, savingsInterestAfterTax, loanInterest, gap,
+    exciseLoanAcct, exciseSavingsAcct, exciseLoanAcctAdj, exciseSavingsAcctAdj,
+    crossesYear: crosses,
+    stampFee: r.stampFee, otherCost: r.otherCost,
+    baseTotal, adjTotal
+  };
+}
+
+
+function calcForCase(c){
+  return c.loanType === "SAVINGS" ? calcSavings(c) : calcFDR(c);
+}
+
+function docsProgress(c){
+  const docs = c.documents || [];
+  const total = docs.length;
+  const done = docs.filter(function(d){ return d.attached; }).length;
+  return { done: done, total: total };
+}
+
+/* ---------------------------------------------------------------
+   RENDER: DASHBOARD
+--------------------------------------------------------------- */
+function renderDashboard(){
+  const el = document.getElementById("tab-dashboard");
+  if (!cases.length){
+    el.innerHTML =
+      '<div class="card empty">' +
+        '<div class="big">📂</div>' +
+        '<div><strong>No loan cases yet.</strong></div>' +
+        '<div class="note">Start one from the "+ New Case" tab — it stays on this list so you can track paperwork and costs as the case moves forward.</div>' +
+      '</div>';
+    return;
+  }
+
+  let rows = cases.map(function(c){
+    const r = calcForCase(c);
+    const prog = docsProgress(c);
+    const pct = prog.total ? Math.round(100*prog.done/prog.total) : 0;
+    const statusClass = c.status === "closed" ? "closed" : "active";
+    return (
+      '<tr class="row" data-id="' + c.id + '">' +
+        '<td><strong>' + escapeHtml(c.studentName || "Untitled") + '</strong><div class="note">' + escapeHtml(c.sponsorName || "") + '</div></td>' +
+        '<td>' + (c.loanType === "SAVINGS" ? "Savings-backed" : "FDR-backed") + '</td>' +
+        '<td>' + fmtMoney(c.principal) + '</td>' +
+        '<td>' + fmtMoney(r.loanAmount) + '</td>' +
+        '<td>' + fmtMoney(r.adjTotal) + '</td>' +
+        '<td><div style="display:flex; align-items:center; gap:8px;"><div class="progress"><div style="width:' + pct + '%"></div></div><span class="note">' + prog.done + '/' + prog.total + '</span></div></td>' +
+        '<td><span class="badge ' + statusClass + '">' + (c.status === "closed" ? "Closed" : "Active") + '</span></td>' +
+        '<td><button type="button" class="btn danger quick-delete" data-del-id="' + c.id + '" title="Delete this case">🗑️</button></td>' +
+      '</tr>'
+    );
+  }).join("");
+
+  el.innerHTML =
+    '<div class="card">' +
+      '<div class="table-scroll"><table>' +
+        '<thead><tr><th>Student</th><th>Type</th><th>Principal</th><th>Loan amount</th><th>Est. total cost</th><th>Documents</th><th>Status</th><th></th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table></div>' +
+    '</div>';
+
+
+  el.querySelectorAll("tr.row").forEach(function(tr){
+    tr.addEventListener("click", function(){ openCaseModal(tr.getAttribute("data-id")); });
+  });
+  el.querySelectorAll(".quick-delete").forEach(function(btn){
+    btn.addEventListener("click", function(ev){
+      ev.stopPropagation(); // don't also open the case row
+      const id = btn.getAttribute("data-del-id");
+      const c = cases.find(function(x){ return x.id === id; });
+      showConfirmDialog("Delete the case for " + (c ? (c.studentName || "this student") : "this case") + "? This cannot be undone.", function(){
+        deleteCase(id);
+      });
+    });
+  });
+}
+
+/* ---------------------------------------------------------------
+   RENDER: NEW CASE FORM
+--------------------------------------------------------------- */
+function renderNewCase(){
+  const el = document.getElementById("tab-new");
+  const today = new Date().toISOString().slice(0,10);
+  el.innerHTML =
+    '<div class="card">' +
+      '<form id="newCaseForm">' +
+        '<div class="section-title">Case</div>' +
+        '<div class="grid cols-2">' +
+          '<div><label>Student name</label><input type="text" name="studentName" required></div>' +
+          '<div><label>Sponsor name</label><input type="text" name="sponsorName"></div>' +
+        '</div>' +
+
+        '<div class="section-title">Loan basis</div>' +
+        '<div class="grid cols-2">' +
+          '<div><label>Loan against</label>' +
+            '<select name="loanType" class="type-select" id="loanTypeSelect">' +
+              '<option value="FDR">Fixed Deposit Receipt (FDR)</option>' +
+              '<option value="SAVINGS">Savings account</option>' +
+            '</select>' +
+          '</div>' +
+          '<div><label id="principalLabel">FDR amount</label><input type="number" name="principal" min="0" step="1000" required></div>' +
+        '</div>' +
+        '<div class="grid cols-2">' +
+          '<div><label>Open date</label><input type="date" name="openDate" value="' + today + '" required></div>' +
+          '<div id="tenureWrap"><label id="tenureLabelFDR">Tenure (months, in 3-month quarters — continuous rollover)</label>' +
+            '<input type="number" name="tenureMonths" id="tenureInputFDR" min="3" step="3" value="3">' +
+            '<input type="number" name="tenureMonthsCustom" id="tenureInputSavings" style="display:none" min="1" step="1" placeholder="Number of months">' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="section-title">Rates used for this case</div>' +
+        '<div class="note" style="margin-bottom:10px;">Pre-filled from Settings — adjust here if this case has different terms. Rates are locked in once the case is saved.</div>' +
+        '<div class="grid cols-3" id="rateFields"></div>' +
+
+        '<div class="section-title">Required documents / attachments</div>' +
+        '<div class="note" style="margin-bottom:10px;">Starts from the default checklist in Settings. You can add or remove items per case.</div>' +
+        '<div id="newCaseDocs"></div>' +
+        '<div class="btn-row"><button type="button" class="btn ghost" id="addDocBtn">+ Add document</button></div>' +
+
+        '<div class="btn-row">' +
+          '<button type="submit" class="btn primary">Save case</button>' +
+        '</div>' +
+      '</form>' +
+    '</div>';
+
+  const rateFieldsEl = document.getElementById("rateFields");
+  function renderRateFields(type){
+    if (type === "SAVINGS"){
+      rateFieldsEl.innerHTML =
+        rateInput("Margin held back (%)", "margin", settings.margin) +
+        rateInput("Loan interest, annual (%)", "savingsLoanRate", settings.savingsLoanRate) +
+        rateInput("Savings interest, annual (%)", "savingsInterestRate", 0) +
+        rateInput("Tax on interest (%)", "taxRate", settings.taxRate) +
+        rateInput("Stamp fee", "stampFee", settings.stampFee) +
+        rateInput("Other cost", "otherCost", settings.otherCost);
+    } else {
+      rateFieldsEl.innerHTML =
+        rateInput("FDR interest, annual (%)", "fdrRate", settings.fdrRate) +
+        rateInput("Margin held back (%)", "margin", settings.margin) +
+        rateInput("Loan interest, annual (%)", "fdrLoanRate", settings.fdrLoanRate) +
+        rateInput("Tax on interest (%)", "taxRate", settings.taxRate) +
+        rateInput("Stamp fee", "stampFee", settings.stampFee) +
+        rateInput("Other cost", "otherCost", settings.otherCost);
+    }
+  }
+  function rateInput(labelText, name, val){
+    return '<div><label>' + labelText + '</label><input type="number" step="0.01" name="' + name + '" value="' + val + '"></div>';
+  }
+  renderRateFields("FDR");
+
+  const docsWrap = document.getElementById("newCaseDocs");
+  let newDocs = settings.documents.map(function(name){ return { name: name, attached: false, note: "" }; });
+  function renderNewDocs(){
+    docsWrap.innerHTML = newDocs.map(function(d, i){
+      return '<div class="doc-item"><span class="doc-name">' + escapeHtml(d.name) + '</span>' +
+        '<button type="button" class="remove-doc" data-i="' + i + '">✕</button></div>';
+    }).join("");
+    docsWrap.querySelectorAll(".remove-doc").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        newDocs.splice(parseInt(btn.getAttribute("data-i"),10), 1);
+        renderNewDocs();
+      });
+    });
+  }
+  renderNewDocs();
+  document.getElementById("addDocBtn").addEventListener("click", function(){
+    showPromptDialog("Document name:", function(name){
+      newDocs.push({ name: name, attached: false, note: "" });
+      renderNewDocs();
+    });
+  });
+
+  const loanTypeSelect = document.getElementById("loanTypeSelect");
+  const tenureInputFDR = document.getElementById("tenureInputFDR");
+  const tenureLabelFDR = document.getElementById("tenureLabelFDR");
+  const tenureInputSavings = document.getElementById("tenureInputSavings");
+  const principalLabel = document.getElementById("principalLabel");
+  loanTypeSelect.addEventListener("change", function(){
+    const t = loanTypeSelect.value;
+    principalLabel.textContent = t === "SAVINGS" ? "Savings balance" : "FDR amount";
+    tenureInputFDR.style.display = t === "SAVINGS" ? "none" : "";
+    tenureLabelFDR.style.display = t === "SAVINGS" ? "none" : "";
+    tenureInputSavings.style.display = t === "SAVINGS" ? "" : "none";
+    renderRateFields(t);
+  });
+
+  document.getElementById("newCaseForm").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    const fd = new FormData(ev.target);
+    const type = fd.get("loanType");
+    const rates = {
+      fdrRate: parseFloat(fd.get("fdrRate")) || settings.fdrRate,
+      taxRate: parseFloat(fd.get("taxRate")) || 0,
+      margin: parseFloat(fd.get("margin")) || 0,
+      fdrLoanRate: parseFloat(fd.get("fdrLoanRate")) || settings.fdrLoanRate,
+      savingsLoanRate: parseFloat(fd.get("savingsLoanRate")) || settings.savingsLoanRate,
+      stampFee: parseFloat(fd.get("stampFee")) || 0,
+      otherCost: parseFloat(fd.get("otherCost")) || 0
+    };
+    const caseObj = {
+      studentName: fd.get("studentName") || "",
+      sponsorName: fd.get("sponsorName") || "",
+      loanType: type,
+      principal: parseFloat(fd.get("principal")) || 0,
+      openDate: fd.get("openDate"),
+      tenureMonths: type === "SAVINGS" ? (parseInt(fd.get("tenureMonthsCustom"),10) || 1) : parseInt(fd.get("tenureMonths"),10),
+      savingsInterestRate: parseFloat(fd.get("savingsInterestRate")) || 0,
+      rates: rates,
+      documents: newDocs,
+      status: "active"
+    };
+    addCase(caseObj).then(function(){
+      ev.target.reset();
+      newDocs = settings.documents.map(function(name){ return { name: name, attached: false, note: "" }; });
+      renderNewDocs();
+      switchTab("dashboard");
+    });
+  });
+}
+
+/* ---------------------------------------------------------------
+   RENDER: SETTINGS
+--------------------------------------------------------------- */
+function renderSettings(){
+  const el = document.getElementById("tab-settings");
+  el.innerHTML =
+    '<div class="card">' +
+      '<form id="settingsForm">' +
+        '<div class="section-title">Currency</div>' +
+        '<div class="grid cols-3">' +
+          '<div><label>Currency symbol</label><input type="text" name="currencySymbol" value="' + escapeAttr(settings.currencySymbol) + '" maxlength="5"></div>' +
+        '</div>' +
+
+        '<div class="section-title">Default rates (used to pre-fill new cases)</div>' +
+        '<div class="grid cols-3">' +
+          settingsRateInput("FDR interest, annual (%)", "fdrRate", settings.fdrRate) +
+          settingsRateInput("Margin held back (%)", "margin", settings.margin) +
+          settingsRateInput("Loan-vs-FDR interest, annual (%)", "fdrLoanRate", settings.fdrLoanRate) +
+          settingsRateInput("Loan-vs-savings interest, annual (%)", "savingsLoanRate", settings.savingsLoanRate) +
+          settingsRateInput("Tax on interest (%)", "taxRate", settings.taxRate) +
+          settingsRateInput("Stamp fee", "stampFee", settings.stampFee) +
+          settingsRateInput("Other cost (buffer)", "otherCost", settings.otherCost) +
+        '</div>' +
+
+        '<div class="section-title">Government excise / duty slabs</div>' +
+        '<div class="note" style="margin-bottom:10px;">This mirrors Bangladesh\'s bracket-based account duty. Every country and bank is different \u2014 edit the brackets to match yours, or set every fee to 0 if this doesn\'t apply where you are.</div>' +
+        '<div id="settingsSlabs"></div>' +
+        '<div class="btn-row"><button type="button" class="btn ghost" id="addSlabBtn">+ Add bracket</button></div>' +
+        '<div class="grid cols-3" style="margin-top:10px;">' +
+          settingsRateInput("Fee above the highest bracket", "exciseAboveFee", settings.exciseAboveFee) +
+        '</div>' +
+
+        '<div class="section-title">Default document checklist</div>' +
+        '<div class="note" style="margin-bottom:10px;">Applied to every new case; existing cases keep their own copy.</div>' +
+        '<div id="settingsDocs"></div>' +
+        '<div class="btn-row"><button type="button" class="btn ghost" id="addSettingsDocBtn">+ Add document</button></div>' +
+
+        '<div class="btn-row"><button type="submit" class="btn primary">Save settings</button></div>' +
+      '</form>' +
+    '</div>';
+
+  function settingsRateInput(labelText, name, val){
+    return '<div><label>' + labelText + '</label><input type="number" step="0.01" name="' + name + '" value="' + val + '"></div>';
+  }
+
+  let docs = settings.documents.slice();
+  const docsWrap = document.getElementById("settingsDocs");
+  function renderDocs(){
+    docsWrap.innerHTML = docs.map(function(name, i){
+      return '<div class="doc-item"><span class="doc-name">' + escapeHtml(name) + '</span>' +
+        '<button type="button" class="remove-doc" data-i="' + i + '">✕</button></div>';
+    }).join("");
+    docsWrap.querySelectorAll(".remove-doc").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        docs.splice(parseInt(btn.getAttribute("data-i"),10), 1);
+        renderDocs();
+      });
+    });
+  }
+  renderDocs();
+  document.getElementById("addSettingsDocBtn").addEventListener("click", function(){
+    showPromptDialog("Document name:", function(name){ docs.push(name); renderDocs(); });
+  });
+
+  let slabs = (settings.exciseSlabs || []).map(function(s){ return { upTo: s.upTo, fee: s.fee }; });
+  const slabsWrap = document.getElementById("settingsSlabs");
+  function renderSlabs(){
+    slabsWrap.innerHTML = slabs.map(function(s, i){
+      return '<div class="doc-item" style="align-items:center;">' +
+        '<div style="flex:1; display:flex; gap:8px; align-items:center;">' +
+          '<span class="note" style="white-space:nowrap;">Up to</span>' +
+          '<input type="number" min="0" step="1" class="slab-upto" data-i="' + i + '" value="' + s.upTo + '" style="max-width:160px;">' +
+          '<span class="note" style="white-space:nowrap;">fee</span>' +
+          '<input type="number" min="0" step="1" class="slab-fee" data-i="' + i + '" value="' + s.fee + '" style="max-width:120px;">' +
+        '</div>' +
+        '<button type="button" class="remove-doc" data-i="' + i + '">✕</button>' +
+      '</div>';
+    }).join("");
+    slabsWrap.querySelectorAll(".slab-upto").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        slabs[parseInt(inp.getAttribute("data-i"),10)].upTo = parseFloat(inp.value) || 0;
+      });
+    });
+    slabsWrap.querySelectorAll(".slab-fee").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        slabs[parseInt(inp.getAttribute("data-i"),10)].fee = parseFloat(inp.value) || 0;
+      });
+    });
+    slabsWrap.querySelectorAll(".remove-doc").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        slabs.splice(parseInt(btn.getAttribute("data-i"),10), 1);
+        renderSlabs();
+      });
+    });
+  }
+  renderSlabs();
+  document.getElementById("addSlabBtn").addEventListener("click", function(){
+    const lastUpTo = slabs.length ? slabs[slabs.length-1].upTo : 0;
+    slabs.push({ upTo: lastUpTo + 100000, fee: 0 });
+    renderSlabs();
+  });
+
+  document.getElementById("settingsForm").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    const fd = new FormData(ev.target);
+    const newSettings = {
+      currencySymbol: (fd.get("currencySymbol") || "").trim() || DEFAULT_SETTINGS.currencySymbol,
+      fdrRate: parseFloat(fd.get("fdrRate")) || 0,
+      taxRate: parseFloat(fd.get("taxRate")) || 0,
+      margin: parseFloat(fd.get("margin")) || 0,
+      fdrLoanRate: parseFloat(fd.get("fdrLoanRate")) || 0,
+      savingsLoanRate: parseFloat(fd.get("savingsLoanRate")) || 0,
+      stampFee: parseFloat(fd.get("stampFee")) || 0,
+      otherCost: parseFloat(fd.get("otherCost")) || 0,
+      exciseSlabs: slabs.slice().sort(function(a,b){ return a.upTo - b.upTo; }),
+      exciseAboveFee: parseFloat(fd.get("exciseAboveFee")) || 0,
+      documents: docs
+    };
+    saveSettings(newSettings).then(function(){
+      showToast("Settings saved.");
+    });
+  });
+}
+
+/* ---------------------------------------------------------------
+   CASE DETAIL MODAL
+--------------------------------------------------------------- */
+let modalMode = "view"; // "view" | "edit"
+
+function openCaseModal(id){
+  editingCaseId = id;
+  modalMode = "view";
+  renderModal(id);
+}
+function closeModal(){
+  editingCaseId = null;
+  modalMode = "view";
+  document.getElementById("modalRoot").innerHTML = "";
+}
+
+function breakdownRow(label, val, isTotal){
+  return '<div class="breakdown-row' + (isTotal ? " total" : "") + '"><span class="label">' + label + '</span><span class="val">' + val + '</span></div>';
+}
+
+function buildBreakdownRows(r, c){
+  if (r.type === "FDR"){
+    let rows = [
+      ["FDR amount (initial)", fmtMoney(r.principal)],
+      ["Margin held back", fmtMoney(r.marginHeld)],
+      ["Loan amount (initial)", fmtMoney(r.loanAmount)],
+      ["Open date → Close date", fmtDate(r.openDate) + " → " + fmtDate(r.closeDate)],
+      ["__section__", "Quarterly schedule — unpaid interest compounds into next quarter"]
+    ];
+    r.quarterSchedule.forEach(function(qd){
+      rows.push(["Q" + qd.quarter + " — FDR balance at start", fmtMoney(qd.fdrBalanceStart)]);
+      rows.push(["Q" + qd.quarter + " — Loan balance at start", fmtMoney(qd.loanBalanceStart)]);
+      rows.push(["Q" + qd.quarter + " — FDR interest (after tax)", fmtMoney(qd.fdrInterestAfterTax)]);
+      rows.push(["Q" + qd.quarter + " — Loan interest charged", fmtMoney(qd.loanInterestQuarterly)]);
+      rows.push(["Q" + qd.quarter + " — Gap", fmtMoney(qd.gap)]);
+    });
+    rows.push(["__section__", "After " + r.quarters + " quarter(s) / " + (r.quarters*3) + " months"]);
+    rows.push(["FDR balance (with compounded interest)", fmtMoney(r.finalFDRBalance)]);
+    rows.push(["Loan balance (with compounded interest)", fmtMoney(r.finalLoanBalance)]);
+    rows.push(["Total interest gap (compounded)", fmtMoney(r.totalInterestGap)]);
+    rows.push(["__section__", "Costs"]);
+    rows.push(["Excise duty — loan account", fmtMoney(r.exciseLoanAcct) + (r.crossesYear ? " (→ " + fmtMoney(r.exciseLoanAcctAdj) + " if crossing year-end)" : "")]);
+    rows.push(["Excise duty — FDR account", fmtMoney(r.exciseFDRAcct) + (r.crossesYear ? " (→ " + fmtMoney(r.exciseFDRAcctAdj) + " if crossing year-end)" : "")]);
+    rows.push(["Stamp fee", fmtMoney(r.stampFee)]);
+    rows.push(["Other / buffer", fmtMoney(r.otherCost)]);
+    rows.push(["__total__", "Estimated total cost", fmtMoney(r.baseTotal)]);
+    if (r.crossesYear) rows.push(["__total__", "Total if account crosses calendar year-end", fmtMoney(r.adjTotal)]);
+    return rows;
+  }
+
+  return [
+    ["Savings balance", fmtMoney(r.principal)],
+    ["Margin held back", fmtMoney(r.marginHeld)],
+    ["Loan amount", fmtMoney(r.loanAmount)],
+    ["Open date → Close date", fmtDate(r.openDate) + " → " + fmtDate(r.closeDate)],
+    ["__section__", "Interest (" + r.months + " months)"],
+    ["Savings interest (after tax)", fmtMoney(r.savingsInterestAfterTax)],
+    ["Loan interest", fmtMoney(r.loanInterest)],
+    ["Gap", fmtMoney(r.gap)],
+    ["__section__", "Costs"],
+    ["Excise duty — loan account", fmtMoney(r.exciseLoanAcct) + (r.crossesYear ? " (→ " + fmtMoney(r.exciseLoanAcctAdj) + " if crossing year-end)" : "")],
+    ["Excise duty — savings account", fmtMoney(r.exciseSavingsAcct) + (r.crossesYear ? " (→ " + fmtMoney(r.exciseSavingsAcctAdj) + " if crossing year-end)" : "")],
+    ["Stamp fee", fmtMoney(r.stampFee)],
+    ["Other / buffer", fmtMoney(r.otherCost)],
+    ["__total__", "Estimated total cost", fmtMoney(r.baseTotal)]
+  ].concat(r.crossesYear ? [["__total__", "Total if account crosses calendar year-end", fmtMoney(r.adjTotal)]] : []);
+}
+
+function renderBreakdownHtml(rows){
+  return rows.map(function(row){
+    if (row[0] === "__section__") return '<div class="scenario-title">' + row[1] + '</div>';
+    if (row[0] === "__total__") return breakdownRow(row[1], row[2], true);
+    return breakdownRow(row[0], row[1]);
+  }).join("");
+}
+
+function renderModal(id){
+  if (modalMode === "edit") return renderEditModal(id);
+
+  const c = cases.find(function(x){ return x.id === id; });
+  const root = document.getElementById("modalRoot");
+  if (!c){ root.innerHTML = ""; return; }
+  const r = calcForCase(c);
+  const prog = docsProgress(c);
+  const breakdown = renderBreakdownHtml(buildBreakdownRows(r, c));
+
+  const docsHtml = (c.documents || []).map(function(d, i){
+    return '<div class="doc-item">' +
+      '<input type="checkbox" data-doc-i="' + i + '" ' + (d.attached ? "checked" : "") + '>' +
+      '<div style="flex:1">' +
+        '<div class="doc-name ' + (d.attached ? "done" : "") + '">' + escapeHtml(d.name) + '</div>' +
+        '<input type="text" class="doc-note" data-note-i="' + i + '" placeholder="Note (optional)" value="' + escapeHtml(d.note || "") + '">' +
+      '</div>' +
+      '<button class="remove-doc" data-remove-i="' + i + '">✕</button>' +
+    '</div>';
+  }).join("");
+
+  root.innerHTML =
+    '<div class="overlay" id="overlay">' +
+      '<div class="modal">' +
+        '<div class="modal-head">' +
+          '<div>' +
+            '<h2>' + escapeHtml(c.studentName || "Untitled") + '</h2>' +
+            '<div class="note">' + escapeHtml(c.sponsorName ? "Sponsor: " + c.sponsorName : "") + '</div>' +
+          '</div>' +
+          '<button class="close-x" id="closeModalBtn">✕</button>' +
+        '</div>' +
+
+        '<div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;">' +
+          '<label style="margin:0;">Status</label>' +
+          '<select id="statusSelect" style="width:auto;">' +
+            '<option value="active"' + (c.status !== "closed" ? " selected" : "") + '>Active</option>' +
+            '<option value="closed"' + (c.status === "closed" ? " selected" : "") + '>Closed</option>' +
+          '</select>' +
+          '<button type="button" class="btn ghost" id="editCaseBtn" style="margin-left:auto;">✏️ Edit case</button>' +
+        '</div>' +
+
+        '<div class="two-col">' +
+          '<div>' +
+            '<div class="section-title">Calculation</div>' +
+            breakdown +
+          '</div>' +
+          '<div>' +
+            '<div class="section-title">Documents (' + prog.done + '/' + prog.total + ')</div>' +
+            '<div id="docsList">' + docsHtml + '</div>' +
+            '<div class="btn-row"><button class="btn ghost" id="addDocModalBtn">+ Add document</button></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="btn-row" style="justify-content:space-between; margin-top:22px;">' +
+          '<button class="btn danger" id="deleteCaseBtn">Delete case</button>' +
+          '<div style="display:flex; gap:8px;">' +
+            '<button class="btn ghost" id="printCaseBtn">🖨️ Print summary</button>' +
+            '<button class="btn primary" id="closeModalBtn2">Done</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById("overlay").addEventListener("click", function(ev){
+    if (ev.target.id === "overlay") closeModal();
+  });
+  document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+  document.getElementById("closeModalBtn2").addEventListener("click", closeModal);
+  document.getElementById("editCaseBtn").addEventListener("click", function(){
+    modalMode = "edit";
+    renderModal(id);
+  });
+  document.getElementById("printCaseBtn").addEventListener("click", function(){
+    printCaseSummary(c, r, prog);
+  });
+  document.getElementById("deleteCaseBtn").addEventListener("click", function(){
+    showConfirmDialog("Delete this case? This cannot be undone.", function(){
+      deleteCase(c.id);
+      closeModal();
+    });
+  });
+  document.getElementById("statusSelect").addEventListener("change", function(ev){
+    updateCase(c.id, { status: ev.target.value });
+  });
+  document.getElementById("addDocModalBtn").addEventListener("click", function(){
+    showPromptDialog("Document name:", function(name){
+      const docs = (c.documents || []).concat([{ name: name, attached:false, note:"" }]);
+      updateCase(c.id, { documents: docs });
+    });
+  });
+  root.querySelectorAll("[data-doc-i]").forEach(function(cb){
+    cb.addEventListener("change", function(){
+      const i = parseInt(cb.getAttribute("data-doc-i"),10);
+      const docs = (c.documents || []).slice();
+      docs[i] = Object.assign({}, docs[i], { attached: cb.checked });
+      updateCase(c.id, { documents: docs });
+    });
+  });
+  root.querySelectorAll("[data-note-i]").forEach(function(inp){
+    inp.addEventListener("change", function(){
+      const i = parseInt(inp.getAttribute("data-note-i"),10);
+      const docs = (c.documents || []).slice();
+      docs[i] = Object.assign({}, docs[i], { note: inp.value });
+      updateCase(c.id, { documents: docs });
+    });
+  });
+  root.querySelectorAll("[data-remove-i]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const i = parseInt(btn.getAttribute("data-remove-i"),10);
+      const docs = (c.documents || []).slice();
+      docs.splice(i,1);
+      updateCase(c.id, { documents: docs });
+    });
+  });
+}
+
+/* --------------------- EDIT MODE --------------------- */
+function renderEditModal(id){
+  const c = cases.find(function(x){ return x.id === id; });
+  const root = document.getElementById("modalRoot");
+  if (!c){ root.innerHTML = ""; return; }
+
+  function rateInput(labelText, name, val){
+    return '<div><label>' + labelText + '</label><input type="number" step="0.01" name="' + name + '" value="' + val + '"></div>';
+  }
+  const r = c.rates || {};
+  const isSavings = c.loanType === "SAVINGS";
+  const rateFieldsHtml = isSavings
+    ? rateInput("Margin held back (%)", "margin", r.margin) +
+      rateInput("Loan interest, annual (%)", "savingsLoanRate", r.savingsLoanRate) +
+      rateInput("Savings interest, annual (%)", "savingsInterestRate", c.savingsInterestRate || 0) +
+      rateInput("Tax on interest (%)", "taxRate", r.taxRate) +
+      rateInput("Stamp fee", "stampFee", r.stampFee) +
+      rateInput("Other cost", "otherCost", r.otherCost)
+    : rateInput("FDR interest, annual (%)", "fdrRate", r.fdrRate) +
+      rateInput("Margin held back (%)", "margin", r.margin) +
+      rateInput("Loan interest, annual (%)", "fdrLoanRate", r.fdrLoanRate) +
+      rateInput("Tax on interest (%)", "taxRate", r.taxRate) +
+      rateInput("Stamp fee", "stampFee", r.stampFee) +
+      rateInput("Other cost", "otherCost", r.otherCost);
+
+  root.innerHTML =
+    '<div class="overlay" id="overlay">' +
+      '<div class="modal">' +
+        '<div class="modal-head">' +
+          '<h2>Edit case</h2>' +
+          '<button class="close-x" id="cancelEditBtn">✕</button>' +
+        '</div>' +
+        '<form id="editCaseForm">' +
+          '<div class="grid cols-2">' +
+            '<div><label>Student name</label><input type="text" name="studentName" value="' + escapeAttr(c.studentName) + '" required></div>' +
+            '<div><label>Sponsor name</label><input type="text" name="sponsorName" value="' + escapeAttr(c.sponsorName) + '"></div>' +
+          '</div>' +
+          '<div class="grid cols-2">' +
+            '<div><label>Loan against</label>' +
+              '<select name="loanType" id="editLoanType" class="type-select">' +
+                '<option value="FDR"' + (!isSavings ? " selected" : "") + '>Fixed Deposit Receipt (FDR)</option>' +
+                '<option value="SAVINGS"' + (isSavings ? " selected" : "") + '>Savings account</option>' +
+              '</select>' +
+            '</div>' +
+            '<div><label>' + (isSavings ? "Savings balance" : "FDR amount") + '</label><input type="number" name="principal" min="0" step="1000" value="' + c.principal + '" required></div>' +
+          '</div>' +
+          '<div class="grid cols-2">' +
+            '<div><label>Open date</label><input type="date" name="openDate" value="' + c.openDate + '" required></div>' +
+            '<div>' +
+              '<label>Tenure (months, in 3-month quarters — continuous rollover)</label>' +
+              '<input type="number" name="tenureMonths" id="editTenureFDR" min="3" step="3" value="' + (isSavings ? 3 : c.tenureMonths) + '" style="display:' + (isSavings ? "none" : "") + '">' +
+              '<input type="number" name="tenureMonthsCustom" id="editTenureSavings" min="1" step="1" value="' + (isSavings ? c.tenureMonths : "") + '" style="display:' + (isSavings ? "" : "none") + '">' +
+            '</div>' +
+          '</div>' +
+          '<div class="section-title">Rates for this case</div>' +
+          '<div class="grid cols-3" id="editRateFields">' + rateFieldsHtml + '</div>' +
+          '<div class="btn-row" style="justify-content:flex-end;">' +
+            '<button type="button" class="btn ghost" id="cancelEditBtn2">Cancel</button>' +
+            '<button type="submit" class="btn primary">Save changes</button>' +
+          '</div>' +
+        '</form>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById("overlay").addEventListener("click", function(ev){
+    if (ev.target.id === "overlay") backToView();
+  });
+  document.getElementById("cancelEditBtn").addEventListener("click", backToView);
+  document.getElementById("cancelEditBtn2").addEventListener("click", backToView);
+
+  const loanTypeSel = document.getElementById("editLoanType");
+  loanTypeSel.addEventListener("change", function(){
+    const isSav = loanTypeSel.value === "SAVINGS";
+    document.getElementById("editTenureFDR").style.display = isSav ? "none" : "";
+    document.getElementById("editTenureSavings").style.display = isSav ? "" : "none";
+    const rf = document.getElementById("editRateFields");
+    rf.innerHTML = isSav
+      ? rateInput("Margin held back (%)", "margin", settings.margin) +
+        rateInput("Loan interest, annual (%)", "savingsLoanRate", settings.savingsLoanRate) +
+        rateInput("Savings interest, annual (%)", "savingsInterestRate", 0) +
+        rateInput("Tax on interest (%)", "taxRate", settings.taxRate) +
+        rateInput("Stamp fee", "stampFee", settings.stampFee) +
+        rateInput("Other cost", "otherCost", settings.otherCost)
+      : rateInput("FDR interest, annual (%)", "fdrRate", settings.fdrRate) +
+        rateInput("Margin held back (%)", "margin", settings.margin) +
+        rateInput("Loan interest, annual (%)", "fdrLoanRate", settings.fdrLoanRate) +
+        rateInput("Tax on interest (%)", "taxRate", settings.taxRate) +
+        rateInput("Stamp fee", "stampFee", settings.stampFee) +
+        rateInput("Other cost", "otherCost", settings.otherCost);
+  });
+
+  document.getElementById("editCaseForm").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    const fd = new FormData(ev.target);
+    const type = fd.get("loanType");
+    const rates = {
+      fdrRate: parseFloat(fd.get("fdrRate")) || (c.rates && c.rates.fdrRate) || settings.fdrRate,
+      taxRate: parseFloat(fd.get("taxRate")) || 0,
+      margin: parseFloat(fd.get("margin")) || 0,
+      fdrLoanRate: parseFloat(fd.get("fdrLoanRate")) || (c.rates && c.rates.fdrLoanRate) || settings.fdrLoanRate,
+      savingsLoanRate: parseFloat(fd.get("savingsLoanRate")) || (c.rates && c.rates.savingsLoanRate) || settings.savingsLoanRate,
+      stampFee: parseFloat(fd.get("stampFee")) || 0,
+      otherCost: parseFloat(fd.get("otherCost")) || 0
+    };
+    const patch = {
+      studentName: fd.get("studentName") || "",
+      sponsorName: fd.get("sponsorName") || "",
+      loanType: type,
+      principal: parseFloat(fd.get("principal")) || 0,
+      openDate: fd.get("openDate"),
+      tenureMonths: type === "SAVINGS" ? (parseInt(fd.get("tenureMonthsCustom"),10) || 1) : parseInt(fd.get("tenureMonths"),10),
+      savingsInterestRate: parseFloat(fd.get("savingsInterestRate")) || 0,
+      rates: rates
+    };
+    updateCase(id, patch).then(function(){
+      modalMode = "view";
+      renderModal(id);
+    });
+  });
+
+  function backToView(){
+    modalMode = "view";
+    renderModal(id);
+  }
+}
+function escapeAttr(s){ return escapeHtml(s); }
+
+/* --------------------- PRINT SUMMARY --------------------- */
+function printCaseSummary(c, r, prog){
+  const rows = buildBreakdownRows(r, c);
+  const calcRowsHtml = rows.map(function(row){
+    if (row[0] === "__section__") return '<tr><td colspan="2"><strong>' + row[1] + '</strong></td></tr>';
+    if (row[0] === "__total__") return '<tr><td><strong>' + row[1] + '</strong></td><td class="pv"><strong>' + row[2] + '</strong></td></tr>';
+    return '<tr><td>' + row[0] + '</td><td class="pv">' + row[1] + '</td></tr>';
+  }).join("");
+
+  const docsHtml = (c.documents || []).map(function(d){
+    return '<li><span class="box">' + (d.attached ? "✓" : "") + '</span>' + escapeHtml(d.name) +
+      (d.note ? ' — <em>' + escapeHtml(d.note) + '</em>' : '') + '</li>';
+  }).join("");
+
+  const html =
+    '<div class="print-summary">' +
+      '<h2>Student Loan Case Summary</h2>' +
+      '<div class="meta">' +
+        'Student: <strong>' + escapeHtml(c.studentName || "—") + '</strong>' +
+        (c.sponsorName ? ' &nbsp;|&nbsp; Sponsor: <strong>' + escapeHtml(c.sponsorName) + '</strong>' : '') +
+        ' &nbsp;|&nbsp; Loan type: <strong>' + (r.type === "SAVINGS" ? "Savings-backed" : "FDR-backed") + '</strong>' +
+        ' &nbsp;|&nbsp; Status: <strong>' + (c.status === "closed" ? "Closed" : "Active") + '</strong>' +
+        '<br>Printed: ' + fmtDate(new Date()) +
+      '</div>' +
+      '<h3>Calculation</h3>' +
+      '<table>' + calcRowsHtml + '</table>' +
+      '<h3>Required documents / attachments checklist (' + prog.done + ' of ' + prog.total + ' attached)</h3>' +
+      '<ul class="doclist">' + docsHtml + '</ul>' +
+    '</div>';
+
+  document.getElementById("printArea").innerHTML = html;
+  window.print();
+}
+
+/* ---------------------------------------------------------------
+   TAB SWITCHING / UTIL
+--------------------------------------------------------------- */
+function escapeHtml(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(ch){
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch];
+  });
+}
+
+/* ---------------------------------------------------------------
+   In-app dialogs — the app runs inside a sandboxed frame where the
+   browser's native confirm()/alert()/prompt() popups are blocked
+   (they silently do nothing), so every confirmation and text prompt
+   uses these instead.
+--------------------------------------------------------------- */
+function showConfirmDialog(message, onConfirm){
+  const root = document.getElementById("miniDialogRoot");
+  root.innerHTML =
+    '<div class="overlay" id="miniOverlay">' +
+      '<div class="modal" style="max-width:420px;">' +
+        '<p style="margin:0 0 18px; font-size:.95rem;">' + escapeHtml(message) + '</p>' +
+        '<div class="btn-row" style="justify-content:flex-end;">' +
+          '<button type="button" class="btn ghost" id="miniCancelBtn">Cancel</button>' +
+          '<button type="button" class="btn danger" id="miniConfirmBtn">Delete</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  function close(){ root.innerHTML = ""; }
+  document.getElementById("miniOverlay").addEventListener("click", function(ev){ if (ev.target.id === "miniOverlay") close(); });
+  document.getElementById("miniCancelBtn").addEventListener("click", close);
+  document.getElementById("miniConfirmBtn").addEventListener("click", function(){ close(); onConfirm(); });
+}
+function showPromptDialog(labelText, onSubmit){
+  const root = document.getElementById("miniDialogRoot");
+  root.innerHTML =
+    '<div class="overlay" id="miniOverlay">' +
+      '<div class="modal" style="max-width:420px;">' +
+        '<label style="margin-bottom:8px; display:block;">' + escapeHtml(labelText) + '</label>' +
+        '<input type="text" id="miniPromptInput">' +
+        '<div class="btn-row" style="justify-content:flex-end; margin-top:16px;">' +
+          '<button type="button" class="btn ghost" id="miniCancelBtn">Cancel</button>' +
+          '<button type="button" class="btn primary" id="miniOkBtn">Add</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  const input = document.getElementById("miniPromptInput");
+  input.focus();
+  function close(){ root.innerHTML = ""; }
+  function submit(){
+    const val = input.value.trim();
+    close();
+    if (val) onSubmit(val);
+  }
+  document.getElementById("miniOverlay").addEventListener("click", function(ev){ if (ev.target.id === "miniOverlay") close(); });
+  document.getElementById("miniCancelBtn").addEventListener("click", close);
+  document.getElementById("miniOkBtn").addEventListener("click", submit);
+  input.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); submit(); } });
+}
+function showToast(message){
+  const t = document.createElement("div");
+  t.className = "mini-toast";
+  t.textContent = message;
+  document.body.appendChild(t);
+  requestAnimationFrame(function(){ t.classList.add("show"); });
+  setTimeout(function(){ t.classList.remove("show"); setTimeout(function(){ t.remove(); }, 250); }, 2000);
+}
+function switchTab(tab){
+  activeTab = tab;
+  document.querySelectorAll("nav.tabs button").forEach(function(b){
+    b.classList.toggle("active", b.getAttribute("data-tab") === tab);
+  });
+  document.getElementById("tab-dashboard").style.display = tab === "dashboard" ? "" : "none";
+  document.getElementById("tab-new").style.display = tab === "new" ? "" : "none";
+  document.getElementById("tab-settings").style.display = tab === "settings" ? "" : "none";
+  renderActiveTab();
+}
+function renderActiveTab(){
+  if (activeTab === "dashboard") renderDashboard();
+  else if (activeTab === "new") renderNewCase();
+  else if (activeTab === "settings") renderSettings();
+  if (editingCaseId) renderModal(editingCaseId);
+}
+
+document.querySelectorAll("nav.tabs button").forEach(function(b){
+  b.addEventListener("click", function(){ switchTab(b.getAttribute("data-tab")); });
+});
+
+initPersistence();
+})();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("service-worker.js").catch(function(){ /* offline caching is optional */ });
+  });
+}
+</script>
+
+<section class="public-seo" aria-label="Student Loan Calculator information">
+  <h1>Free Student Loan Calculator</h1>
+  <p class="lead">Estimate your student loan amount, interest and related cost using your loan, FDR or savings details.</p>
+  <div class="notice">
+    <strong>How to use:</strong> Enter the required figures in the calculator above and select Calculate.
+    The calculator is designed for one-time estimates; your personal information is not required.
+  </div>
+
+  <h2>Student Loan Calculator</h2>
+  <p>Use this calculator to estimate student-loan financing based on the available inputs and calculation rules built into this tool.</p>
+
+  <h2>Frequently Asked Questions</h2>
+  <details><summary>Is this student loan calculator free?</summary>
+    <p>Yes. The calculator is intended to be available as a free public web tool.</p>
+  </details>
+  <details><summary>Do I need to create an account?</summary>
+    <p>No account, student profile, sponsor profile or case record is required to use the calculator.</p>
+  </details>
+  <details><summary>Does the calculator save my student information?</summary>
+    <p>The public version is designed as a one-time calculator rather than a case-management system. Avoid entering unnecessary personal information.</p>
+  </details>
+  <details><summary>Are the results an official loan approval?</summary>
+    <p>No. Results are estimates for calculation purposes only. Actual loan eligibility, pricing, fees and approval depend on the relevant lender's terms and applicable rules.</p>
+  </details>
+</section>
+<footer class="public-footer">Student Loan Calculator • Free online calculator • For estimation purposes only</footer>
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"WebApplication",
+  "name":"Free Student Loan Calculator",
+  "applicationCategory":"FinanceApplication",
+  "operatingSystem":"Web",
+  "description":"Free online calculator for estimating student loan amounts, interest and related costs."
+}
+</script>
+</body>
+</html>
