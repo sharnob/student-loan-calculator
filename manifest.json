@@ -1,17 +1,20 @@
 {
-  "name": "Student Loan Calculation",
-  "short_name": "Loan Calc",
-  "description": "Loan-against-FDR and loan-against-savings calculator with case tracking and a document attachment checklist.",
-  "id": "/",
-  "start_url": "/index.html",
-  "scope": "/",
+  "name": "Student Loan Calculator",
+  "short_name": "Loan Calculator",
+  "start_url": "/student-loan-calculator/",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#f6f7f9",
-  "theme_color": "#2f6fed",
+  "background_color": "#f5f7fb",
+  "theme_color": "#2563eb",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }
